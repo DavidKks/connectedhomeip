@@ -358,3 +358,8 @@
 	path = third_party/openthread/ot-realtek
 	url = https://github.com/rtkconnectivity/ot-realtek.git
 	platforms = realtek_bee
+[submodule "examples/android-mzb-app"]
+	path = examples/android-mzb-app
+	url = https://github.com/DavidKks/android-mzb-app.git
+	update = none 	# 기본적으로 업데햐이트 하지 않음음
+  ignore = all  # 모든 상황에서 무시

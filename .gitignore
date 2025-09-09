@@ -85,3 +85,6 @@ examples/*/esp32/dependencies.lock
 
 # jupyter temporary files
 .ipynb_checkpoints
+
+# examples/android-mzb-app 폴더 하위 모든 파일 제외
+examples/android-mzb-app/

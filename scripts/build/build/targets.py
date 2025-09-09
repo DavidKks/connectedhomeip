@@ -388,6 +388,8 @@ def BuildAndroidTarget():
                    app=AndroidApp.KOTLIN_MATTER_CONTROLLER),
         TargetPart('virtual-device-app',
                    app=AndroidApp.VIRTUAL_DEVICE_APP),
+        TargetPart('android-mzb-app',
+                   app=AndroidApp.ANDROID_MZB_APP),
     ])
 
     # Modifiers

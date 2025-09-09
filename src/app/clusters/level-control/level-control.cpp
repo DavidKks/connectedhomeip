@@ -342,6 +342,8 @@ static EmberAfLevelControlState * getState(EndpointId endpoint)
 {
     uint16_t ep =
         emberAfGetClusterServerEndpointIndex(endpoint, LevelControl::Id, MATTER_DM_LEVEL_CONTROL_CLUSTER_SERVER_ENDPOINT_COUNT);
+
+    ChipLogDetail(Zcl, "getState: endpoint %u, epIndex %u", endpoint, ep);    
     return (ep >= kLevelControlStateTableSize ? nullptr : &stateTable[ep]);
 }
 
@@ -441,6 +443,8 @@ void emberAfLevelControlClusterServerTickCallback(EndpointId endpoint)
     }
 
     ChipLogDetail(Zcl, "Event: move from %d", currentLevel.Value());
+    ChipLogDetail(Zcl, "Event: move to level %d", state->moveToLevel);
+
 
     // adjust by the proper amount, either up or down
     if (state->transitionTimeMs == 0)
@@ -684,12 +688,12 @@ Status MoveToLevel(EndpointId endpointId, const Commands::MoveToLevel::Decodable
 
     if (transitionTime.IsNull())
     {
-        ChipLogProgress(Zcl, "%s MOVE_TO_LEVEL %x null %x %x", "RX level-control:", level, optionsMask.Raw(),
+        ChipLogProgress(Zcl, "MoveToLevel(): %s MOVE_TO_LEVEL %x null %x %x", "RX level-control:", level, optionsMask.Raw(),
                         optionsOverride.Raw());
     }
     else
     {
-        ChipLogProgress(Zcl, "%s MOVE_TO_LEVEL %x %2x %x %x", "RX level-control:", level, transitionTime.Value(), optionsMask.Raw(),
+        ChipLogProgress(Zcl, "MoveToLevel(): %s MOVE_TO_LEVEL %x %2x %x %x", "RX level-control:", level, transitionTime.Value(), optionsMask.Raw(),
                         optionsOverride.Raw());
     }
 
@@ -881,6 +885,12 @@ static Status moveToLevelHandler(EndpointId endpoint, CommandId commandId, uint8
         return Status::Failure;
     }
 
+    ChipLogProgress(Zcl, "LevelControl State: commandId=%d, moveToLevel=%d, minLevel=%d, maxLevel=%d", 
+                    state->commandId, state->moveToLevel, state->minLevel, state->maxLevel);
+    ChipLogProgress(Zcl, "LevelControl State: increasing=%d, transitionTimeMs=%d, elapsedTimeMs=%d, eventDurationMs=%d",
+                    state->increasing, state->transitionTimeMs, state->elapsedTimeMs, state->eventDurationMs);
+    ChipLogProgress(Zcl, "LevelControl State: storedLevel=%d", state->storedLevel);
+
     if (level > MATTER_DM_PLUGIN_LEVEL_CONTROL_MAXIMUM_LEVEL)
     {
         return Status::InvalidCommand;
@@ -923,6 +933,11 @@ static Status moveToLevelHandler(EndpointId endpoint, CommandId commandId, uint8
     {
         state->moveToLevel = level;
     }
+
+    // 임시 코드
+    state->moveToLevel = level;
+
+    ChipLogDetail(Zcl, "moveToLevelHandler: current level = %d, input level = %d, move to level = %d", currentLevel.Value(), level, state->moveToLevel);
 
     // If the level is decreasing, the On/Off attribute is left unchanged.  This
     // logic is to prevent a light from transitioning from off to bright to dim.

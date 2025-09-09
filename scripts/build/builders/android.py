@@ -73,6 +73,7 @@ class AndroidApp(Enum):
     JAVA_MATTER_CONTROLLER = auto()
     KOTLIN_MATTER_CONTROLLER = auto()
     VIRTUAL_DEVICE_APP = auto()
+    ANDROID_MZB_APP = auto()
 
     def AppName(self):
         if self == AndroidApp.CHIP_TOOL:
@@ -85,6 +86,8 @@ class AndroidApp(Enum):
             return "tv-casting"
         elif self == AndroidApp.VIRTUAL_DEVICE_APP:
             return "virtual-device-app"
+        elif self == AndroidApp.ANDROID_MZB_APP:
+            return "android-mzb-app"            
         else:
             raise Exception("Unknown app type: %r" % self)
 
@@ -97,6 +100,8 @@ class AndroidApp(Enum):
             gn_args["chip_config_network_layer_ble"] = False
         elif self == AndroidApp.VIRTUAL_DEVICE_APP:
             gn_args["chip_config_network_layer_ble"] = True
+        elif self == AndroidApp.ANDROID_MZB_APP:
+            gn_args["chip_config_network_layer_ble"] = True
         elif self == AndroidApp.CHIP_TOOL:
             gn_args["chip_build_controller_dynamic_server"] = True
         return gn_args
@@ -108,6 +113,8 @@ class AndroidApp(Enum):
             return "tv-casting-app"
         elif self == AndroidApp.VIRTUAL_DEVICE_APP:
             return "virtual-device-app"
+        elif self == AndroidApp.ANDROID_MZB_APP:
+            return "android-mzb-app"
         elif self == AndroidApp.CHIP_TEST:
             return "chip-test"
         else:
@@ -571,7 +578,29 @@ class AndroidBuilder(Builder):
 
                 self.copyToExampleApp(jnilibs_dir, libs_dir, libs, jars)
                 self.gradlewBuildExampleAndroid()
+            elif exampleName == "android-mzb-app":
+                jnilibs_dir = os.path.join(
+                    self.root,
+                    "examples/",
+                    self.app.ExampleName(),
+                    "android/App/app/libs/jniLibs",
+                    self.board.AbiName(),
+                )
 
+                libs_dir = os.path.join(
+                    self.root, "examples/", self.app.ExampleName(), "android/App/app/libs"
+                )
+
+                libs = ["libc++_shared.so", "libDeviceApp.so"]
+
+                jars = {
+                    "OnboardingPayload.jar": "third_party/connectedhomeip/src/controller/java/OnboardingPayload.jar",
+                    "AndroidPlatform.jar": "third_party/connectedhomeip/src/platform/android/AndroidPlatform.jar",
+                    "CHIPAppServer.jar": "third_party/connectedhomeip/src/app/server/java/CHIPAppServer.jar",
+                    "DeviceApp.jar": "DeviceApp.jar",
+                }
+                self.copyToExampleApp(jnilibs_dir, libs_dir, libs, jars)
+                self.gradlewBuildExampleAndroid()
             if (self.profile != AndroidProfile.DEBUG):
                 self.stripSymbols()
 
@@ -597,6 +626,11 @@ class AndroidBuilder(Builder):
             elif self.app == AndroidApp.VIRTUAL_DEVICE_APP:
                 yield BuilderOutput(
                     os.path.join(self.output_dir, "VirtualDeviceApp", "app",
+                                 "outputs", "apk", "debug", "app-debug.apk"),
+                    self.app.AppName() + "app-debug.apk")
+            elif self.app == AndroidApp.ANDROID_MZB_APP:
+                yield BuilderOutput(
+                    os.path.join(self.output_dir, "AndroidMzbApp", "app",
                                  "outputs", "apk", "debug", "app-debug.apk"),
                     self.app.AppName() + "app-debug.apk")
             else:
